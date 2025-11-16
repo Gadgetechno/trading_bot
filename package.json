@@ -1,0 +1,33 @@
+{
+  "name": "tanix-2.0",
+  "version": "2.0.0",
+  "description": "Tanix 2.0 Trading Platform with Telegram Verification",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "bot": "python -X utf8 main.py",
+    "bot-dev": "python -X utf8 main.py'",
+    "website": "node server.js",
+    "all": "concurrently \"npm run website\" \"npm run bot\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "telegraf": "^4.15.3",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "trading",
+    "telegram",
+    "bot",
+    "authentication",
+    "crypto"
+  ],
+  "author": "Tanishq Vairagi",
+  "license": "MIT"
+}

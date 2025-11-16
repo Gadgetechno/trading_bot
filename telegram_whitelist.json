@@ -1,0 +1,56 @@
+{
+  "users": [
+    {
+      "telegramId": "123456789",
+      "username": "tanishq_trader",
+      "firstName": "Tanishq",
+      "joinedAt": "2024-01-15T10:30:00.000Z",
+      "lastLogin": "2024-01-20T14:22:00.000Z",
+      "isActive": true
+    },
+    {
+      "telegramId": "987654321",
+      "username": "crypto_enthusiast",
+      "firstName": "John",
+      "joinedAt": "2024-01-16T09:15:00.000Z",
+      "lastLogin": null,
+      "isActive": true
+    },
+    {
+      "telegramId": "2049948903",
+      "username": "new_new_newe",
+      "firstName": "Chinkyyy",
+      "joinedAt": "2025-11-15T13:34:47.233Z",
+      "lastLogin": "2025-11-15T13:44:19.616Z",
+      "isActive": true
+    },
+    {
+      "telegramId": "1300081353",
+      "username": "helldeath25",
+      "firstName": "Okiee ji",
+      "joinedAt": "2025-11-15T13:47:30.389Z",
+      "lastLogin": "2025-11-15T13:59:27.326Z",
+      "isActive": true,
+      "updatedAt": "2025-11-15T13:59:39.314Z"
+    },
+    {
+      "telegramId": "856496906",
+      "username": "pandeyritvik",
+      "firstName": "Ritvik",
+      "joinedAt": "2025-11-15T13:48:02.709Z",
+      "lastLogin": null,
+      "isActive": true
+    },
+    {
+      "telegramId": "8406046785",
+      "username": "Unknown",
+      "firstName": "Raj",
+      "joinedAt": "2025-11-15T14:01:11.761Z",
+      "lastLogin": null,
+      "isActive": true,
+      "updatedAt": "2025-11-15T14:01:21.469Z"
+    }
+  ],
+  "createdAt": "2024-01-15T08:00:00.000Z",
+  "updatedAt": "2025-11-15T14:01:21.469Z"
+}

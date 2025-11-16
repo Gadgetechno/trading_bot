@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TANIX AI — Modern Trading</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
+    <style>
+      /* --- Design System Variables --- */
+      :root {
+        --bg-primary: #0a1a2f; /* Navy Midnight */
+        --bg-secondary: #102a43; /* Deep Blue (cards) */
+        --accent: #3b82f6; /* Electric Blue */
+        --accent-2: #60a5fa; /* lighter blue (hover) */
+        --text-primary: #e5e5e5;
+        --text-secondary: #bfc7d5;
+        --muted: #94a3b8;
+        --border: #1b263b;
+        --glass: rgba(255, 255, 255, 0.03);
+        --shadow: 0 8px 30px rgba(2, 6, 23, 0.55);
+        --max-width: 1200px;
+      }
+
+      /* --- Base Styles --- */
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+        margin: 0;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: 1.5;
+      }
+
+      /* --- Homepage Section Styles --- */
+      .section-container {
+        max-width: var(--max-width);
+        margin-inline: auto;
+        padding: 4rem 1.25rem;
+      }
+      .card-dark {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+      }
+      .text-accent {
+        color: var(--accent) !important;
+      }
+      .border-accent {
+        border-color: var(--accent) !important;
+      }
+      .bg-accent {
+        background-color: var(--accent) !important;
+        color: var(--text-primary) !important;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        background: var(--accent);
+        color: var(--text-primary);
+        padding: 0.7rem 1.25rem;
+        font-weight: 600;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        transition: transform 0.18s ease, box-shadow 0.18s ease,
+          background 0.18s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
+        background: var(--accent-2);
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .btn-outline:hover {
+        border-color: var(--accent);
+        background: rgba(59, 130, 246, 0.03);
+      }
+      .stat {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        border-radius: 12px;
+        padding: 1.4rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+      }
+      .hero {
+        min-height: calc(100vh - 72px);
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .muted {
+        color: var(--muted);
+      }
+
+      /* Responsive */
+      @media (min-width: 768px) {
+        .hero h1 {
+          font-size: clamp(2rem, 4.5vw, 4rem);
+        }
+        .hero p {
+          font-size: 1.125rem;
+        }
+      }
+      .mobile-nav {
+        display: none;
+      }
+      @media (max-width: 767px) {
+        .desktop-nav {
+          display: none;
+        }
+        .mobile-nav {
+          display: block;
+        }
+      }
+
+      /* --- Login Page Styles --- */
+      
+      /* Login container is full-screen, hidden by default */
+      #login-page {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 100;
+        background: var(--bg-primary);
+      }
+      #particles-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+      /* Login card (z-index 1 relative to its container) */
+      #login-card {
+        position: relative;
+        z-index: 1;
+      }
+      /* Login form inputs */
+      .form-input {
+        display: block;
+        width: 100%;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      .form-input::placeholder {
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+      }
+      .btn-full {
+        width: 100%;
+      }
+
+      /* Focus (accessibility) */
+      a:focus,
+      button:focus,
+      .btn-primary:focus,
+      .form-input:focus {
+        outline: 3px solid rgba(59, 130, 246, 0.18);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="homepage-content">
+      <header
+        class="sticky top-0 z-50 w-full backdrop-blur-md bg-[rgba(16,42,67,0.65)]/95 border-b border-[rgba(255,255,255,0.03)]"
+      >
+        <div class="max-w-6xl mx-auto flex items-center justify-between p-4">
+          <a
+            href="#home"
+            class="flex items-center gap-3 text-lg md:text-2xl font-semibold"
+          >
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <rect width="24" height="24" rx="6" fill="#102A43"></rect>
+              <path
+                d="M6 15L10 9L14 15"
+                stroke="#3B82F6"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="text-accent">TANIX</span>
+            <span class="text-white font-extrabold">AI</span>
+          </a>
+
+          <nav
+            class="desktop-nav hidden md:flex items-center gap-6 text-sm font-medium"
+          >
+            <a
+              href="#home"
+              class="text-[var(--text-secondary)] hover:text-accent transition-colors"
+              >Home</a
+            >
+            <a
+              href="#tools"
+              class="text-[var(--text-secondary)] hover:text-accent transition-colors"
+              >Trading Tools</a
+            >
+            <a
+              href="#services"
+              class="text-[var(--text-secondary)] hover:text-accent transition-colors"
+              >Services</a
+            >
+            <a
+              href="#about"
+              class="text-[var(--text-secondary)] hover:text-accent transition-colors"
+              >About</a
+            >
+          </nav>
+
+          <div class="hidden md:flex items-center gap-3">
+            <a
+              href="https://t.me/TANISHQTRADER"
+              class="btn-primary"
+              aria-label="Join Telegram"
+            >
+              <i class="fab fa-telegram fa-fw"></i>
+              <span class="hidden sm:inline">Join Telegram</span>
+            </a>
+          </div>
+
+          <div class="mobile-nav md:hidden">
+            <button
+              id="navToggle"
+              class="btn-outline p-2"
+              aria-expanded="false"
+              aria-controls="mobileMenu"
+              aria-label="Toggle menu"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="mobileMenu"
+          class="hidden md:hidden bg-[rgba(10,26,47,0.95)] border-t border-[rgba(255,255,255,0.02)]"
+        >
+          <div class="px-4 py-4 flex flex-col gap-3">
+            <a
+              href="#home"
+              class="py-2 px-3 rounded hover:bg-[rgba(255,255,255,0.02)]"
+              >Home</a
+            >
+            <a
+              href="#tools"
+              class="py-2 px-3 rounded hover:bg-[rgba(255,255,255,0.02)]"
+              >Trading Tools</a
+            >
+            <a
+              href="#services"
+              class="py-2 px-3 rounded hover:bg-[rgba(255,255,255,0.02)]"
+              >Services</a
+            >
+            <a
+              href="#about"
+              class="py-2 px-3 rounded hover:bg-[rgba(255,255,255,0.02)]"
+              >About</a
+            >
+            <a
+              href="https://t.me/TANISHQTRADER"
+              class="py-2 px-3 rounded btn-primary inline-block text-center"
+              >Join Telegram</a
+            >
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section
+          id="home"
+          class="hero"
+          aria-label="Hero section"
+          style="
+            background-image: linear-gradient(
+                rgba(2, 6, 23, 0.55),
+                rgba(2, 6, 23, 0.75)
+              ),
+              url('hero-trading.jpg');
+            background-size: cover;
+            background-position: center;
+          "
+        >
+          <div
+            class="section-container grid grid-cols-1 md:grid-cols-2 gap-10 items-center"
+          >
+            <div class="text-center md:text-left">
+              <span
+                class="text-sm text-[var(--text-secondary)] uppercase tracking-wider"
+                >Money Management Guide</span
+              >
+              <h1 class="mt-4 font-extrabold leading-tight text-white">
+                By Tanishq Vairagi
+              </h1>
+              <p class="mt-4 text-[var(--text-secondary)] max-w-xl">
+                Stop guessing. Start making data-driven trades with our complete
+                AI toolkit and 20k+ member community. Signals, analytics, and
+                coaching — all in one place.
+              </p>
+
+              <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
+                <a
+                  href="#"
+                  onclick="showLogin()"
+                  class="btn-primary"
+                  role="button"
+                  >Management Tool</a
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="stat card-dark">
+                <div class="text-accent text-2xl mb-2">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="text-2xl font-bold">20k+</div>
+                <div class="muted">Members</div>
+              </div>
+              <div class="stat card-dark">
+                <div class="text-accent text-2xl mb-2">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <div class="text-2xl font-bold">AI</div>
+                <div class="muted">Signal Bot</div>
+              </div>
+              <div class="stat card-dark">
+                <div class="text-accent text-2xl mb-2">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="text-2xl font-bold">92%</div>
+                <div class="muted">Signal Accuracy</div>
+              </div>
+              <div class="stat card-dark">
+                <div class="text-accent text-2xl mb-2">
+                  <i class="fas fa-headset"></i>
+                </div>
+                <div class="text-2xl font-bold">24/7</div>
+                <div class="muted">Support</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="about" class="section-container">
+          <div class="card-dark p-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-10">
+              Get Started in 3 Easy Steps
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="text-center p-6">
+                <div
+                  class="mx-auto mb-4 w-16 h-16 rounded-full bg-[var(--bg-secondary)] border border-accent flex items-center justify-center"
+                >
+                  <i
+                    class="fas fa-paper-plane text-accent text-xl"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">1. Join Telegram</h3>
+                <p class="muted">
+                  Get instant access to our free community of traders and daily
+                  context.
+                </p>
+              </div>
+
+              <div class="text-center p-6">
+                <div
+                  class="mx-auto mb-4 w-16 h-16 rounded-full bg-[var(--bg-secondary)] border border-accent flex items-center justify-center"
+                >
+                  <i
+                    class="fas fa-book-open text-accent text-xl"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">2. Learn Signals</h3>
+                <p class="muted">
+                  Receive explainers, risk guidance and signal context to trade
+                  confidently.
+                </p>
+              </div>
+
+              <div class="text-center p-6">
+                <div
+                  class="mx-auto mb-4 w-16 h-16 rounded-full bg-[var(--bg-secondary)] border border-accent flex items-center justify-center"
+                >
+                  <i
+                    class="fas fa-chart-line text-accent text-xl"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">3. Start Trading</h3>
+                <p class="muted">
+                  Use our insights and trackers to manage and grow your
+                  portfolio.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" class="section-container">
+          <div class="card-dark p-8">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+              <div class="w-full md:w-1/2">
+                <span class="text-accent font-semibold uppercase tracking-wide"
+                  >Community</span
+                >
+                <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4">
+                  Telegram — Over 20k Members
+                </h2>
+                <p class="muted mb-6">
+                  Get updates, market trends, and free signals daily. Network
+                  with traders, ask questions and learn trade management.
+                </p>
+                <a href="https://t.me/TANISHQTRADER" class="btn-primary"
+                  >Head to Telegram</a
+                >
+              </div>
+              <div class="w-full md:w-1/2">
+                <img
+                  src="https://placehold.co/600x420/102A43/ffffff?text=Modern+3D+Graphic"
+                  alt="Illustration"
+                  class="rounded-xl shadow-2xl w-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tools" class="section-container">
+          <h2 class="text-3xl md:text-4xl font-bold text-center mb-10">
+            Our <span class="text-accent">Trading Tools</span>
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-robot"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">AI Signal Bot</h3>
+              <p class="muted">
+                Scans markets 24/7 to surface high-probability setups.
+              </p>
+            </div>
+
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">Economic Calendar</h3>
+              <p class="muted">
+                Track macro events and the news that moves markets.
+              </p>
+            </div>
+
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-calculator"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">Risk Calculator</h3>
+              <p class="muted">
+                Position sizing and risk management tools to protect capital.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="services" class="section-container">
+          <h2 class="text-3xl md:text-4xl font-bold text-center mb-10">
+            Our <span class="text-accent">Services</span>
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-users"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">Free Signal Group</h3>
+              <p class="muted">Daily ideas for traders at every level.</p>
+            </div>
+
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-gem"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">VIP Premium Signals</h3>
+              <p class="muted">
+                High-confidence signals with trade management guidance.
+              </p>
+            </div>
+
+            <div class="card-dark p-6 text-center">
+              <div class="mb-4 text-accent text-3xl">
+                <i class="fas fa-user-graduate"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">1-on-1 Coaching</h3>
+              <p class="muted">
+                Personal mentorship for strategy & risk management.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="testimonials" class="section-container">
+          <h2 class="text-3xl md:text-4xl font-bold text-center mb-8">
+            What Our Members Say
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-dark p-6">
+              <p class="muted italic mb-4">
+                "The signals are incredibly accurate!"
+              </p>
+              <h4 class="text-lg font-semibold text-accent">— Aman S.</h4>
+            </div>
+            <div class="card-dark p-6">
+              <p class="muted italic mb-4">
+                "Real guidance, no hype — just results."
+              </p>
+              <h4 class="text-lg font-semibold text-accent">— Priya K.</h4>
+            </div>
+            <div class="card-dark p-6">
+              <p class="muted italic mb-4">
+                "Perfect for beginners and experts alike."
+              </p>
+              <h4 class="text-lg font-semibold text-accent">— Rohan P.</h4>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="py-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+          <a href="#home" class="text-2xl font-semibold"
+            ><span class="text-accent">TANIX</span>
+            <span class="text-white font-extrabold">AI</span></a
+          >
+
+          <div class="flex justify-center items-center gap-6 mt-6 mb-6">
+            <a
+              href="https://t.me/TANISHQTRADER"
+              class="text-[var(--text-secondary)] hover:text-accent"
+              aria-label="Telegram"
+              ><i class="fab fa-telegram fa-2x"></i
+            ></a>
+            <a
+              href="#"
+              class="text-[var(--text-secondary)] hover:text-accent"
+              aria-label="YouTube"
+              ><i class="fab fa-youtube fa-2x"></i
+            ></a>
+            <a
+              href="#"
+              class="text-[var(--text-secondary)] hover:text-accent"
+              aria-IA-label="Instagram"
+              ><i class="fab fa-instagram fa-2x"></i
+            ></a>
+          </div>
+
+          <p class="text-[var(--text-secondary)]">
+            Copyright © <span id="year"></span> TANIX AI. All Rights Reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Updated Login Section -->
+    <div id="login-page">
+      <div id="particles-bg"></div>
+
+      <div id="login-card" class="card-dark p-8 md:p-10 w-full max-w-md">
+        <div class="text-center mb-6">
+          <a
+            href="#"
+            onclick="showHome()"
+            class="flex items-center justify-center gap-3 text-2xl font-semibold"
+            aria-label="TANIX AI Home"
+          >
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <rect width="24" height="24" rx="6" fill="#102A43"></rect>
+              <path
+                d="M6 15L10 9L14 15"
+                stroke="#3B82F6"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="text-accent">TANIX</span>
+            <span class="text-white font-extrabold">AI</span>
+          </a>
+        </div>
+
+        <h2 class="text-2xl font-bold text-center text-white mb-6">
+          Telegram Verification
+        </h2>
+
+        <form id="telegramLoginForm" class="space-y-6">
+          <div>
+            <label
+              for="telegramId"
+              class="block text-sm font-medium text-[var(--muted)] mb-2"
+              >Telegram User ID</label
+            >
+            <input
+              type="text"
+              id="telegramId"
+              name="telegramId"
+              class="form-input"
+              placeholder="123456789"
+              required
+              pattern="[0-9]+"
+              title="Please enter only numbers"
+            />
+            <p class="text-xs text-[var(--muted)] mt-2">
+              Enter your Telegram User ID. Find it by messaging @userinfobot on Telegram.
+            </p>
+          </div>
+
+          <div>
+            <button type="submit" class="btn-primary btn-full">
+              <i class="fab fa-telegram mr-2"></i>Verify & Login
+            </button>
+          </div>
+        </form>
+
+        <div id="loginMessage" class="hidden mt-4 p-3 rounded text-sm text-center"></div>
+
+        <p class="text-center text-sm text-[var(--muted)] mt-8">
+          Not a member? Join our 
+          <a href="https://t.me/TANISHQTRADER" class="font-medium text-accent hover:underline" target="_blank">
+            Telegram Channel
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+    <script>
+      // --- Homepage Script (Mobile Menu) ---
+      const navToggle = document.getElementById("navToggle");
+      const mobileMenu = document.getElementById("mobileMenu");
+      if (navToggle) {
+        navToggle.addEventListener("click", () => {
+          const expanded = navToggle.getAttribute("aria-expanded") === "true";
+          navToggle.setAttribute("aria-expanded", String(!expanded));
+          mobileMenu.classList.toggle("hidden");
+        });
+      }
+
+      // Current year in footer
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      
+      // --- Page Toggle Scripts ---
+      const homePage = document.getElementById("homepage-content");
+      const loginPage = document.getElementById("login-page");
+      let particlesLoaded = false;
+
+      function showLogin() {
+        // Hide homepage
+        homePage.style.display = "none";
+        
+        // Show login page
+        loginPage.style.display = "flex";
+
+        // Initialize particles ONCE
+        if (!particlesLoaded) {
+          initParticles();
+          particlesLoaded = true;
+        }
+      }
+
+      function showHome() {
+        // Hide login page
+        loginPage.style.display = "none";
+        
+        // Show homepage
+        homePage.style.display = "block";
+      }
+
+      // Updated login form handler
+      document.getElementById('telegramLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const telegramId = document.getElementById('telegramId').value.trim();
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const messageDiv = document.getElementById('loginMessage');
+        
+        if (!telegramId || !/^\d+$/.test(telegramId)) {
+          showMessage('Please enter a valid Telegram User ID (numbers only)', 'error');
+          return;
+        }
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+        messageDiv.classList.add('hidden');
+
+        try {
+          const response = await fetch('/api/verify-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ telegramId })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showMessage('Verification successful! Redirecting...', 'success');
+            
+            // Store session and redirect
+            localStorage.setItem('tanix_user', telegramId);
+            localStorage.setItem('tanix_verified', 'true');
+            localStorage.setItem('tanix_username', result.user?.username || 'User');
+            
+            setTimeout(() => {
+              window.location.href = 'power-bi.html';
+            }, 1000);
+          } else {
+            showMessage(result.message || 'You are not a Tanix 2.0 member. Access Denied.', 'error');
+          }
+        } catch (error) {
+          showMessage('Network error. Please try again.', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fab fa-telegram mr-2"></i>Verify & Login';
+        }
+      });
+
+      function showMessage(message, type) {
+        const messageDiv = document.getElementById('loginMessage');
+        messageDiv.textContent = message;
+        messageDiv.className = `mt-4 p-3 rounded text-sm text-center ${
+          type === 'error' 
+            ? 'bg-red-900/30 border border-red-700 text-red-300' 
+            : 'bg-green-900/30 border border-green-700 text-green-300'
+        }`;
+        messageDiv.classList.remove('hidden');
+      }
+
+      // Check if user is already logged in
+      function checkExistingSession() {
+        const isVerified = localStorage.getItem('tanix_verified');
+        const userId = localStorage.getItem('tanix_user');
+        
+        if (isVerified && userId) {
+          // Auto-redirect to dashboard if already verified
+          window.location.href = 'power-bi.html';
+        }
+      }
+
+      // Call on page load
+      checkExistingSession();
+
+      // --- Particle Animation Config ---
+      function initParticles() {
+        tsParticles.load("particles-bg", {
+          background: {
+            color: {
+              value: "var(--bg-primary)",
+            },
+          },
+          fpsLimit: 120,
+          interactivity: {
+            events: {
+              onClick: {
+                enable: true,
+                mode: "push",
+              },
+              onHover: {
+                enable: true,
+                mode: "grab",
+              },
+              resize: true,
+            },
+            modes: {
+              push: {
+                quantity: 2,
+              },
+              grab: {
+                distance: 150,
+                links: {
+                  opacity: 0.5,
+                },
+              },
+            },
+          },
+          particles: {
+            color: {
+              value: "#ffffff",
+            },
+            links: {
+              color: "var(--accent)",
+              distance: 150,
+              enable: true,
+              opacity: 0.3,
+              width: 1,
+            },
+            collisions: {
+              enable: true,
+            },
+            move: {
+              direction: "none",
+              enable: true,
+              outModes: {
+                default: "bounce",
+              },
+              random: false,
+              speed: 1,
+              straight: false,
+            },
+            number: {
+              density: {
+                enable: true,
+                area: 800,
+              },
+              value: 60,
+            },
+            opacity: {
+              value: 0.3,
+            },
+            shape: {
+              type: "circle",
+            },
+            size: {
+              value: { min: 1, max: 3 },
+            },
+          },
+          detectRetina: true,
+        });
+      }
+    </script>
+  </body>
+</html>
