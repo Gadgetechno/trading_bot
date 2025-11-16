@@ -16,7 +16,7 @@ import threading
 import signal as system_signal
 import httpx  # <-- YAH ADD KIYA GAYA HAI
 
-import nest_asyncio
+#import nest_asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -28,7 +28,7 @@ from telegram.ext import (
 )
 
 # Apply nest_asyncio for Jupyter compatibility
-nest_asyncio.apply()
+#nest_asyncio.apply()
 
 # --- 1. CONFIGURATION ---
 CONFIG = {
@@ -2061,3 +2061,4 @@ if __name__ == "__main__":
         logger.error(f"❌ Fatal error: {e}")
     finally:
         logger.info("👋 TANIX AI Trading Bot terminated")
+
