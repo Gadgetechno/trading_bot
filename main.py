@@ -14,9 +14,8 @@ from collections import deque
 from typing import Optional, Dict, Any, List
 import threading
 import signal as system_signal
-import httpx  # <-- YAH ADD KIYA GAYA HAI
+import httpx
 
-#import nest_asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -26,9 +25,6 @@ from telegram.ext import (
     filters,
     CallbackQueryHandler,
 )
-
-# Apply nest_asyncio for Jupyter compatibility
-#nest_asyncio.apply()
 
 # --- 1. CONFIGURATION ---
 CONFIG = {
@@ -63,8 +59,8 @@ CONFIG = {
     "LIVE_MARKET_START": "09:00",
     "LIVE_MARKET_END": "23:30",
     # Website configuration
-    "WEBSITE_URL": "http://learnwithtanishq.com",  # Change to your actual domain
-    "BOT_SECRET_KEY": "tanix2-secret-key-2024",  # Same as in server.js
+    "WEBSITE_URL": "http://learnwithtanishq.com",
+    "BOT_SECRET_KEY": "tanix2-secret-key-2024",
 }
 
 # Populate ASSETS_TO_TRACK
@@ -305,7 +301,7 @@ class LicenseManager:
                         'license_key': f"ADMIN{admin_id}",
                         'created_at': IndiaTimezone.now().isoformat(),
                         'is_active': True,
-                        'website_access': True  # Admins automatically get website access
+                        'website_access': True
                     }
             self.save_json(self.users_file, users)
             self.save_json(self.tokens_file, {})
@@ -335,7 +331,7 @@ class LicenseManager:
                 'license_key': license_key,
                 'created_at': IndiaTimezone.now().isoformat(),
                 'is_active': True,
-                'website_access': True  # New users get website access
+                'website_access': True
             }
             
             success = self.save_json(self.users_file, users)
@@ -382,7 +378,7 @@ class LicenseManager:
                     'license_key': license_key,
                     'created_at': IndiaTimezone.now().isoformat(),
                     'is_active': True,
-                    'website_access': True  # Token users get website access
+                    'website_access': True
                 }
                 
                 if self.save_json(self.tokens_file, tokens) and self.save_json(self.users_file, users):
@@ -403,7 +399,6 @@ class LicenseManager:
             return user is not None and user.get('is_active', False)
     
     def check_website_access(self, user_id):
-        """Check if user has website access"""
         if user_id in CONFIG["ADMIN_IDS"]:
             return True
             
@@ -464,7 +459,6 @@ class LicenseManager:
             return False
 
     def toggle_website_access(self, user_id):
-        """Toggle website access for a user"""
         with db_lock:
             users = self.load_json(self.users_file, {})
             user_id_str = str(user_id)
@@ -590,7 +584,6 @@ class LicenseManager:
                 trades[trade_id]['message_id'] = message_id
                 self.save_json(self.trades_file, trades)
 
-
 # --- 8. GLOBAL STATE ---
 class TradingState:
     def __init__(self):
@@ -631,13 +624,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-# --- WEBSITE SYNC FUNCTIONS (UPDATED) ---
-
+# --- WEBSITE SYNC FUNCTIONS ---
 async def sync_user_to_website(telegram_id: str, username: str, first_name: str):
-    """
-    Calls the Node.js server endpoint to add/update the user in the website's whitelist.
-    """
     api_url = CONFIG.get("WEBSITE_URL", "http://learnwithtanishq.com") + "/api/add-user"
     secret_key = CONFIG.get("BOT_SECRET_KEY", "tanix2-secret-key-2024")
     
@@ -649,7 +637,7 @@ async def sync_user_to_website(telegram_id: str, username: str, first_name: str)
     }
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(api_url, json=user_data)
             
         if response.status_code == 200 and response.json().get("success"):
@@ -660,9 +648,6 @@ async def sync_user_to_website(telegram_id: str, username: str, first_name: str)
         logger.error(f"❌ Error syncing user {telegram_id} to website: {e}")
 
 async def remove_user_from_website(telegram_id: str):
-    """
-    Calls the Node.js server endpoint to deactivate the user from the website's whitelist.
-    """
     api_url = CONFIG.get("WEBSITE_URL", "http://learnwithtanishq.com") + "/api/remove-user"
     secret_key = CONFIG.get("BOT_SECRET_KEY", "tanix2-secret-key-2024")
     
@@ -672,7 +657,7 @@ async def remove_user_from_website(telegram_id: str):
     }
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(api_url, json=user_data)
             
         if response.status_code == 200 and response.json().get("success"):
@@ -681,7 +666,6 @@ async def remove_user_from_website(telegram_id: str):
             logger.warning(f"⚠️ Failed to deactivate user {telegram_id} from website. Server response: {response.text}")
     except Exception as e:
         logger.error(f"❌ Error deactivating user {telegram_id} from website: {e}")
-
 
 # --- 9. HIGH ACCURACY TECHNICAL INDICATORS ---
 class HighAccuracyIndicators:
@@ -868,7 +852,6 @@ class HighAccuracyIndicators:
             if len(prices) < INDICATOR_CONFIG["MIN_PRICE_DATA"]:
                 return {"valid": False}
             
-            # Calculate all indicators
             ma_fast = HighAccuracyIndicators.calculate_sma(prices, INDICATOR_CONFIG["MA_FAST"])
             ma_medium = HighAccuracyIndicators.calculate_sma(prices, INDICATOR_CONFIG["MA_MEDIUM"])
             ma_slow = HighAccuracyIndicators.calculate_sma(prices, INDICATOR_CONFIG["MA_SLOW"])
@@ -885,19 +868,16 @@ class HighAccuracyIndicators:
             price_change_5 = ((current_price - prices[-5]) / prices[-5] * 100) if len(prices) >= 5 else 0
             price_change_10 = ((current_price - prices[-10]) / prices[-10] * 100) if len(prices) >= 10 else 0
             
-            # Enhanced signal scoring system
             bullish_score = 0
             bearish_score = 0
             max_score = 0
             
-            # 1. Multi-timeframe MA alignment (Weight: 3)
             if ma_fast > ma_medium > ma_slow:
                 bullish_score += 3
             elif ma_fast < ma_medium < ma_slow:
                 bearish_score += 3
             max_score += 3
             
-            # 2. RSI with optimal zone preference (Weight: 2.5)
             if 45 <= rsi <= 55:
                 if price_change_5 > 0:
                     bullish_score += 2.5
@@ -909,14 +889,12 @@ class HighAccuracyIndicators:
                 bearish_score += 1.5
             max_score += 2.5
             
-            # 3. MACD trend confirmation (Weight: 2)
             if macd_data["histogram"] > 0 and macd_data["macd"] > macd_data["signal"]:
                 bullish_score += 2
             elif macd_data["histogram"] < 0 and macd_data["macd"] < macd_data["signal"]:
                 bearish_score += 2
             max_score += 2
             
-            # 4. Bollinger Bands squeeze and breakout (Weight: 2)
             bb_width = (bb_data["upper"] - bb_data["lower"]) / bb_data["middle"]
             bb_position = (current_price - bb_data["lower"]) / (bb_data["upper"] - bb_data["lower"])
             
@@ -932,42 +910,36 @@ class HighAccuracyIndicators:
                     bearish_score += 1.5
             max_score += 2
             
-            # 5. Stochastic momentum (Weight: 1.5)
             if stochastic_data["k"] < 20 and stochastic_data["d"] < 20:
                 bullish_score += 1.5
             elif stochastic_data["k"] > 80 and stochastic_data["d"] > 80:
                 bearish_score += 1.5
             max_score += 1.5
             
-            # 6. CCI trend (Weight: 1.5)
             if cci < -100:
                 bullish_score += 1.5
             elif cci > 100:
                 bearish_score += 1.5
             max_score += 1.5
             
-            # 7. Williams %R (Weight: 1)
             if williams_r < -80:
                 bullish_score += 1
             elif williams_r > -20:
                 bearish_score += 1
             max_score += 1
             
-            # 8. Support/Resistance levels (Weight: 1.5)
             if current_price <= sr_levels["support"] * 1.005:
                 bullish_score += 1.5
             elif current_price >= sr_levels["resistance"] * 0.995:
                 bearish_score += 1.5
             max_score += 1.5
             
-            # 9. Price momentum (Weight: 1)
             if price_change_5 > 0.5 and price_change_10 > 0.5:
                 bullish_score += 1
             elif price_change_5 < -0.5 and price_change_10 < -0.5:
                 bearish_score += 1
             max_score += 1
             
-            # 10. Volatility adjustment (Weight: 1)
             volatility = atr / current_price * 100
             if volatility < 0.5:
                 if bullish_score > bearish_score + 2:
@@ -976,7 +948,6 @@ class HighAccuracyIndicators:
                     bearish_score += 1
             max_score += 1
             
-            # Determine final direction and score
             if bullish_score > bearish_score:
                 direction = "BULLISH"
                 raw_score = (bullish_score / max_score) * 100
@@ -986,21 +957,17 @@ class HighAccuracyIndicators:
                 raw_score = (bearish_score / max_score) * 100
                 signal_strength = bearish_score - bullish_score
             
-            # Apply signal strength bonus
             strength_bonus = min(15, signal_strength * 3)
             base_score = raw_score + strength_bonus
             
-            # Consistency bonus for multiple timeframe alignment
             consistency_bonus = 0
             if (bullish_score > bearish_score * 1.5) or (bearish_score > bullish_score * 1.5):
                 consistency_bonus = 8
             
             final_score = min(95, base_score + consistency_bonus)
             
-            # Calculate confidence based on signal clarity with higher minimum
             confidence = max(80, min(95, final_score - random.randint(0, 5)))
             
-            # Enhanced validation - require stronger signal difference
             min_signal_diff = 3.0
             if abs(bullish_score - bearish_score) < min_signal_diff:
                 return {"valid": False}
@@ -1008,13 +975,11 @@ class HighAccuracyIndicators:
             if final_score < CONFIG["MIN_SCORE"] or confidence < CONFIG["MIN_CONFIDENCE"]:
                 return {"valid": False}
             
-            # Enhanced profit potential calculation
             base_profit = 78.0
             volatility_factor = min(12, volatility * 10)
             strength_factor = min(10, signal_strength * 2)
             profit_percentage = base_profit + volatility_factor + strength_factor
             
-            # Ensure minimum profit potential
             if profit_percentage < 75:
                 profit_percentage = 75 + random.uniform(1, 5)
             
@@ -1232,7 +1197,6 @@ def format_signal_message(signal: Dict[str, Any]) -> str:
 
     return message
 
-
 # --- 11. REALISTIC PRICE SIMULATION ---
 class RealisticPriceGenerator:
     @staticmethod
@@ -1281,27 +1245,40 @@ class RealisticPriceGenerator:
         new_price = last_price * (1 + change)
         return round(new_price, 4)
 
-# --- 12. ASYNC TASK MANAGEMENT ---
+# --- 12. ENHANCED ASYNC TASK MANAGEMENT ---
 class TaskManager:
     def __init__(self):
         self.tasks = []
         self.running = True
+        self.lock = asyncio.Lock()
     
     async def create_task(self, coro, name: str):
-        task = asyncio.create_task(coro, name=name)
-        self.tasks.append(task)
-        return task
+        async with self.lock:
+            task = asyncio.create_task(self._safe_coroutine(coro, name), name=name)
+            self.tasks.append(task)
+            return task
+    
+    async def _safe_coroutine(self, coro, name: str):
+        try:
+            await coro
+        except asyncio.CancelledError:
+            logger.info(f"✅ Task {name} cancelled gracefully")
+        except Exception as e:
+            logger.error(f"❌ Task {name} error: {e}")
+            import traceback
+            logger.error(f"❌ Task {name} traceback: {traceback.format_exc()}")
     
     async def cancel_all(self):
         self.running = False
-        for task in self.tasks:
-            if not task.done():
-                task.cancel()
-        
-        if self.tasks:
-            await asyncio.gather(*self.tasks, return_exceptions=True)
-        
-        self.tasks.clear()
+        async with self.lock:
+            for task in self.tasks:
+                if not task.done():
+                    task.cancel()
+            
+            if self.tasks:
+                await asyncio.gather(*self.tasks, return_exceptions=True)
+            
+            self.tasks.clear()
 
 task_manager = TaskManager()
 
@@ -1342,7 +1319,7 @@ async def auto_signal_task():
                         message_sent = await STATE.telegram_app.bot.send_message(
                             chat_id=user_id,
                             text=message,
-                            parse_mode=None  # Changed from 'Markdown' to None to avoid entity parsing errors
+                            parse_mode=None
                         )
                         
                         serializable_signal = signal.copy()
@@ -1405,7 +1382,7 @@ async def trade_result_task():
                             await STATE.telegram_app.bot.send_message(
                                 chat_id=user_id,
                                 text=result_message,
-                                parse_mode=None  # Changed from 'Markdown' to None
+                                parse_mode=None
                             )
                             logger.info(f"✅ Trade result posted for {trade_id} to user {user_id}: {result}")
                         except Exception as e:
@@ -1422,22 +1399,17 @@ async def trade_result_task():
             logger.error(f"Trade result error: {e}")
             await asyncio.sleep(30)
 
-# --- 13. TELEGRAM HANDLERS WITH WEBSITE INTEGRATION (UPDATED) ---
-
+# --- 13. TELEGRAM HANDLERS WITH WEBSITE INTEGRATION ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     username = update.effective_user.username or "Unknown"
     first_name = update.effective_user.first_name or "User"
     
     if STATE.license_manager.check_user_access(user_id):
-        
-        # --- YAH BLOCK UPDATE KIYA GAYA HAI ---
-        # User ko website se sync karne ki koshish karein
         try:
             await sync_user_to_website(str(user_id), username, first_name)
         except Exception as e:
             logger.error(f"Failed to trigger website sync for user {user_id} on /start: {e}")
-        # --- YAHAN TAK ---
 
         website_access = STATE.license_manager.check_website_access(user_id)
         website_status = "✅ ACTIVE" if website_access else "❌ INACTIVE"
@@ -1502,13 +1474,10 @@ async def token_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             parse_mode=None
         )
         
-        # --- YAH BLOCK UPDATE KIYA GAYA HAI ---
-        # Naye user ko website se sync karein
         try:
             await sync_user_to_website(str(user_id), username, first_name)
         except Exception as e:
             logger.error(f"Failed to trigger website sync for new user {user_id} on /token: {e}")
-        # --- YAHAN TAK ---
             
     else:
         await update.message.reply_text("❌ Invalid token", parse_mode=None)
@@ -1531,7 +1500,7 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     await update.message.reply_text("👨‍💼 Admin Panel", reply_markup=reply_markup, parse_mode=None)
 
-# --- FIXED CALLBACK HANDLER WITH WEBSITE INTEGRATION (UPDATED) ---
+# --- FIXED CALLBACK HANDLER ---
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -1793,7 +1762,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             keyboard = []
             for user in website_users_list:
                 username = user['username'] or f"User{user['user_id']}"
-                # --- YAHAN FIX THA: 'website_users' ko 'website_users_list' kiya ---
                 button_text = f"🌐 {username} (ID: {user['user_id']})"
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=f"toggle_website_{user['user_id']}")])
             
@@ -1809,7 +1777,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             )
             return
         
-        # --- YAH POORA BLOCK UPDATE KIYA GAYA HAI ---
         elif data.startswith("toggle_website_"):
             if user_id not in CONFIG["ADMIN_IDS"]:
                 await query.message.reply_text("❌ Admin only", parse_mode=None)
@@ -1819,20 +1786,16 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 target_user_id_str = data.replace("toggle_website_", "")
                 target_user_id = int(target_user_id_str)
                 
-                # Step 1: Toggle the flag in the bot's users.json
                 success, new_status = STATE.license_manager.toggle_website_access(target_user_id)
                 
                 if not success:
                     await query.message.reply_text("❌ Failed to update bot's user file.", parse_mode=None)
                     return
 
-                # Step 2: Sync this change with the website server
                 if new_status == "ENABLED":
-                    # Get user details to send for syncing
                     users = STATE.license_manager.load_json(STATE.license_manager.users_file, {})
                     user_data = users.get(target_user_id_str, {})
                     username = user_data.get('username', f"User{target_user_id}")
-                    # Use username for first_name if 'firstName' is missing
                     first_name = user_data.get('firstName', username) 
                     
                     await sync_user_to_website(target_user_id_str, username, first_name)
@@ -1840,7 +1803,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 elif new_status == "DISABLED":
                     await remove_user_from_website(target_user_id_str)
 
-                # Step 3: Report success to admin
                 await query.message.reply_text(
                     f"✅ Website Access Synced\n\n"
                     f"👤 User ID: {target_user_id}\n"
@@ -1909,8 +1871,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 success = STATE.license_manager.deactivate_user(target_user_id)
                 
                 if success:
-                    # --- YAH BHI UPDATE KIYA GAYA HAI ---
-                    # Website se bhi deactivate karein
                     await remove_user_from_website(str(target_user_id))
                     
                     username = user_to_remove['username'] or f"User{target_user_id}"
@@ -1936,8 +1896,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 await query.message.reply_text("❌ Error removing user.", parse_mode=None)
                 return
         
-        # If none of the above conditions match, don't generate a signal
-        # This prevents unwanted signal generation for unknown callbacks
         logger.warning(f"Unknown callback data: {data}")
         
     except Exception as e:
@@ -1971,16 +1929,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             parse_mode=None
         )
 
-# --- 14. GRACEFUL SHUTDOWN ---
+# --- 14. ENHANCED GRACEFUL SHUTDOWN ---
 async def shutdown():
     logger.info("🛑 TANIX AI Shutdown initiated...")
     
     STATE.shutting_down = True
-    await task_manager.cancel_all()
     
-    if STATE.telegram_app:
-        await STATE.telegram_app.stop()
-        await STATE.telegram_app.shutdown()
+    try:
+        await task_manager.cancel_all()
+        
+        if STATE.telegram_app:
+            try:
+                await STATE.telegram_app.updater.stop()
+                await STATE.telegram_app.stop()
+                await STATE.telegram_app.shutdown()
+                logger.info("✅ Telegram bot stopped gracefully")
+            except Exception as e:
+                logger.error(f"❌ Error stopping Telegram bot: {e}")
+        
+        await asyncio.sleep(2)
+        
+    except Exception as e:
+        logger.error(f"❌ Error during shutdown: {e}")
     
     logger.info("✅ TANIX AI Shutdown completed")
 
@@ -1988,7 +1958,7 @@ def signal_handler(signum, frame):
     logger.info(f"🛑 Received signal {signum}, shutting down...")
     asyncio.create_task(shutdown())
 
-# --- 15. MAIN APPLICATION ---
+# --- 15. ENHANCED MAIN APPLICATION ---
 async def main():
     logger.info("🤖 Starting TANIX AI Trading Bot...")
     
@@ -2002,7 +1972,8 @@ async def main():
             STATE.price_data[asset].extend(prices)
             logger.info(f"✅ {asset}: {len(prices)} prices loaded")
         
-        logger.info("🚀 Starting TANIX AI system...")
+        logger.info("🚀 Starting TANIX AI system tasks...")
+        
         await task_manager.create_task(price_update_task(), "price_updater")
         await task_manager.create_task(auto_signal_task(), "auto_signal")
         await task_manager.create_task(trade_result_task(), "trade_result_tracker")
@@ -2028,37 +1999,42 @@ async def main():
         logger.info("✅ TANIX AI Trading Bot ready!")
         logger.info(f"🎯 Market Mode: {market_status['status']}")
         logger.info(f"💰 Monitoring {len(CONFIG['ASSETS_TO_TRACK'])} pairs")
-        logger.info("🤖 Strategy: Advanced AI-powered technical analysis")
-        logger.info("⏰ Timeframe: 1 minute with HH:MM:00 entry times (IST)")
-        logger.info(f"📊 Minimum Quality: Score {CONFIG['MIN_SCORE']}+, Confidence {CONFIG['MIN_CONFIDENCE']}%+")
-        logger.info(f"💸 Minimum Profit: 75%+")
         logger.info(f"🎯 Success Rate: {performance['success_rate']:.1%}")
-        logger.info("🕒 Live Market Hours: 09:00 AM - 11:30 PM IST")
-        logger.info("🔵 OTC Hours: 11:30 PM - 09:00 AM IST & Weekends")
-        logger.info("🤖 Automated Signals: Every 10 minutes")
-        logger.info("🇮🇳 Timezone: UTC+5:30 (IST)")
         logger.info("🌐 Website Integration: ✅ ACTIVE")
-        logger.info(f"🔗 Website URL: {CONFIG['WEBSITE_URL']}")
         
-        await application.run_polling(
-            close_loop=False,
-            stop_signals=None
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling(
+            poll_interval=1.0,
+            timeout=10,
+            drop_pending_updates=True
         )
         
+        while task_manager.running and not STATE.shutting_down:
+            await asyncio.sleep(1)
+            
     except asyncio.CancelledError:
         logger.info("🛑 Main task cancelled")
     except Exception as e:
         logger.error(f"❌ Fatal error in main: {e}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
     finally:
         await shutdown()
 
 if __name__ == "__main__":
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
     try:
-        asyncio.run(main())
+        logger.info("🤖 Starting TANIX AI Trading Bot...")
+        loop.run_until_complete(main())
     except KeyboardInterrupt:
         logger.info("🛑 TANIX AI stopped by user")
     except Exception as e:
         logger.error(f"❌ Fatal error: {e}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
     finally:
         logger.info("👋 TANIX AI Trading Bot terminated")
-
+        loop.close()
