@@ -28,7 +28,7 @@ from telegram.ext import (
 
 # --- 1. CONFIGURATION ---
 CONFIG = {
-    "TELEGRAM_BOT_TOKEN": "8034049017:AAHkE7daRkUcyeFyveaDszEw4TcKPqUdgTE",
+    "TELEGRAM_BOT_TOKEN": "8034049017:AAEe-z_tjwE7cwWgxlWWJyvbnOTGXk9MySU",
     "QUOTEX_EMAIL": "Quoto421@gmail.com",
     "QUOTEX_PASSWORD": "Quoto@123",
     "OTC_PAIRS": [
@@ -2038,4 +2038,5 @@ if __name__ == "__main__":
     finally:
         logger.info("👋 TANIX AI Trading Bot terminated")
         loop.close()
+
 
