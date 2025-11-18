@@ -1250,13 +1250,11 @@ class TaskManager:
     def __init__(self):
         self.tasks = []
         self.running = True
-        self.lock = asyncio.Lock()
     
     async def create_task(self, coro, name: str):
-        async with self.lock:
-            task = asyncio.create_task(self._safe_coroutine(coro, name), name=name)
-            self.tasks.append(task)
-            return task
+        task = asyncio.create_task(self._safe_coroutine(coro, name), name=name)
+        self.tasks.append(task)
+        return task
     
     async def _safe_coroutine(self, coro, name: str):
         try:
@@ -1270,15 +1268,14 @@ class TaskManager:
     
     async def cancel_all(self):
         self.running = False
-        async with self.lock:
-            for task in self.tasks:
-                if not task.done():
-                    task.cancel()
-            
-            if self.tasks:
-                await asyncio.gather(*self.tasks, return_exceptions=True)
-            
-            self.tasks.clear()
+        for task in self.tasks:
+            if not task.done():
+                task.cancel()
+        
+        if self.tasks:
+            await asyncio.gather(*self.tasks, return_exceptions=True)
+        
+        self.tasks.clear()
 
 task_manager = TaskManager()
 
@@ -2004,13 +2001,10 @@ async def main():
         
         await application.initialize()
         await application.start()
-        await application.updater.start_polling(
-            poll_interval=1.0,
-            timeout=10,
-            drop_pending_updates=True
-        )
+        await application.updater.start_polling()
         
-        while task_manager.running and not STATE.shutting_down:
+        # Keep the bot running
+        while not STATE.shutting_down:
             await asyncio.sleep(1)
             
     except asyncio.CancelledError:
@@ -2023,12 +2017,9 @@ async def main():
         await shutdown()
 
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
     try:
         logger.info("🤖 Starting TANIX AI Trading Bot...")
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("🛑 TANIX AI stopped by user")
     except Exception as e:
@@ -2037,6 +2028,3 @@ if __name__ == "__main__":
         logger.error(f"❌ Traceback: {traceback.format_exc()}")
     finally:
         logger.info("👋 TANIX AI Trading Bot terminated")
-        loop.close()
-
-
